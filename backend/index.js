@@ -10,7 +10,6 @@ const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
 const { v4 : uuidv4 } = require('uuid')
-const { count, error } = require('console')
 
 app.use(bodyParser.json())
 app.use(cors())
@@ -50,7 +49,7 @@ const storage = multer.diskStorage({
         } else if (file.fieldname === 'resume'){
             cb(null, resumeFolder);
         } else {
-            cb(new Error('Invalid File field'), null);
+            cb(new Error('Invalid File field'), null);  
         }
     },
     filename: (req, file, cb) => {
@@ -376,7 +375,7 @@ function verifyToken(req, res, next) {
     } else {
         res.send({ result: "Tokan is not valid" })
     }
-}
+};
 
 
 

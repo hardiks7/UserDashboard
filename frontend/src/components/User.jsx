@@ -99,34 +99,37 @@ const User = () => {
 
   const navigate = useNavigate();
 
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
   };
 
   const handleBack = () => {
     navigate('/dashboard')
-  }
+  };
+
+
 
   const [userdata, setUserdata] = useState([])
-  const [dialog, setDialog] = useState(false)
-  const [dialogtitle, setDialogtitle] = useState('Add City')
-  const [viewDialog, setViewDialog] = useState(false)
-  const [deleteDialog, setDeleteDialog] = useState(false)
+  // const [dialog, setDialog] = useState(false)
+  // const [dialogtitle, setDialogtitle] = useState('Add City')
+  // const [viewDialog, setViewDialog] = useState(false)
+  // const [deleteDialog, setDeleteDialog] = useState(false)
   const [countryname, setCountryName] = useState("")
   const [statename, setStateName] = useState("")
   const [cityname, setCityName] = useState("")
-  const [isdisabled, setIsDisabled] = useState(true)
+  // const [isdisabled, setIsDisabled] = useState(true)
   const [cityid, setCityId] = useState("")
   const [state, setState] = useState([])
   const [country, setCountry] = useState([])
-  const [selectedCountryId, setselectedCountryId] = useState("")
-  const [selectedStateId, setselectedStateId] = useState("")
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(3);
+  // const [selectedCountryId, setselectedCountryId] = useState("")
+  // const [selectedStateId, setselectedStateId] = useState("")
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(3)
   const [totalrecord, setTotalRecord] = useState('')
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("")
   const [sortOrder, setSortOrder] = useState("asc")
+  const [userId, setUserID] = useState("")
 
   const count = parseInt(totalrecord);
 

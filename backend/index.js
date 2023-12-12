@@ -10,7 +10,8 @@ const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
-const { count, error } = require('console')
+
+
 
 app.use(bodyParser.json())
 app.use(cors())
@@ -28,6 +29,12 @@ app.use(function (req, resp, next) {
 
 app.post('/user', (req, resp, next) => {
     const userId = uuidv4();
+    req.userId = userId;
+    next();
+});
+
+app.put('/user/:userid', (req, resp, next) => {
+    const userId = req.params.userid
     req.userId = userId;
     next();
 });
@@ -50,7 +57,7 @@ const storage = multer.diskStorage({
         } else if (file.fieldname === 'resume') {
             cb(null, resumeFolder);
         } else {
-            cb(new Error('Invalid File field'), null);
+            cb(new Error('Invalid File field'), null);  
         }
     },
     filename: (req, file, cb) => {
@@ -100,7 +107,7 @@ app.put('/user/:userId', upload.fields([
 
     try {
 
-        const existingUserData = await database_file.getUser(userId);
+        const existingUserData = await database.getUser(userId);
 
         if (!req.files['profilepicture']) {
             profilepicture = existingUserData.profilepicture;
@@ -127,6 +134,8 @@ app.delete('/user/:userid', (req, res,) => {
             res.status(500).send(error);
         })
 });
+
+
 
 app.get('/user', (req, res) => {
     database.getUser()
@@ -161,11 +170,11 @@ app.get('/ViewUserById/:userid', (req, res) => {
         });
 });
 
-app.get('/user/:userid/:firstname', (req, resp) => {
+app.get('/user/:userid/:filename', (req, resp) => {
     const userId = req.params.userid;
-    const filename = req.params.firstname;
+    const filename = req.params.filename;
 
-    database_file.DownloadResume(userId, filename)
+    database.DownloadResume(userId, filename)
         .then((resumePath) => {
             resp.download(resumePath);
         })
@@ -449,7 +458,7 @@ function verifyToken(req, res, next) {
     } else {
         res.send({ result: "Tokan is not valid" })
     }
-}
+};
 
 
 app.listen(port, () => {

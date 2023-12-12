@@ -99,7 +99,7 @@ const User = () => {
 
   const navigate = useNavigate();
 
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
   };
@@ -108,39 +108,38 @@ const User = () => {
     navigate('/dashboard')
   }
 
-  const handleScreen = () => {
-    navigate("/userform");
-  };
-
   const [userdata, setUserdata] = useState([])
   const [viewDialog, setViewDialog] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState(false)
+  const [userId, setUserId] = useState("") 
+  const [firstname, setFirstName] = useState("")
+  const [lastname, setLastName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phonenumber, setPhoneNumber] = useState("")
+  const [profilepicture, setProfilePicture] = useState("")
+  const [resume, setResume] = useState("")
+  const [address, setAddress] = useState("")
+  const [countryname, setCountryName] = useState("")
+  const [statename, setStateName] = useState("")
+  const [cityname, setCityName] = useState("")
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(3);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalrecord, setTotalRecord] = useState('')
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("")
   const [sortOrder, setSortOrder] = useState("asc")
-  const [userId, setUserId] = useState("")
-  const [firstname, setFirstName] = useState('');
-  const [lastname, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phonenumber, setPhoneNumber] = useState('');
-  const [profilepicture, setProfilePicture] = useState('');
-  const [resume, setResume] = useState('');
-  const [address, setAddress] = useState('');
-  const [countryname, setCountryName] = useState('');
-  const [statename, setStateName] = useState('');
-  const [cityname, setCityName] = useState('');
-
+  const [imageDialog, setImageDialog] = useState(false)
 
   const count = parseInt(totalrecord);
 
+  const handleScreen = () => {
+    navigate('/userform')
+  } 
   const handleClose = () => {
     setViewDialog(false)
     setDeleteDialog(false)
   };
 
-  // pagination
+  // Pagination
 
   const getUser = useCallback(async (pages, rowsPerPage) => {
     const response = await fetch(`http://localhost:4500/UserPagination?pageNumber=${pages + 1}&pageSize=${rowsPerPage}&filter=${search}&sortOrder=${sortOrder}`)
@@ -233,12 +232,24 @@ const User = () => {
     })
       .then(async (response) => {
         const data = await response.json()
-        navigate(`/user/form`, { state: { data } });
+        navigate(`/userform`, { state: { data } });
       })
   }
 
   const handleSort = () => {
     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+  }
+
+  const handleDownload = (userid,filename) => {
+  const downloadLink = document.createElement('a');
+  downloadLink.href = `http://localhost:4500/user/${userid}/${filename}`;
+  downloadLink.download = filename;
+  downloadLink.click()
+  }
+
+  const openeImageInDialog = (imageUrl) => {
+    setImageDialog(true)
+    setProfilePicture(imageUrl)
   }
 
   return (
@@ -274,7 +285,7 @@ const User = () => {
                 noWrap
                 sx={{ flexGrow: 1 }}
               >
-                City Page
+                User Page
               </Typography>
 
               <Button variant="contained"
@@ -282,7 +293,7 @@ const User = () => {
                 onClick={handleBack}>
                 Go To Dashboard
               </Button>
-
+              
             </Toolbar>
           </AppBar>
           <Drawer variant="permanent" open={open}>
@@ -326,7 +337,7 @@ const User = () => {
                   display: 'flex',
                   alignItems: 'center',
                   width: 350,
-                  marginLeft: '9rem',
+                  marginLeft: '16rem',
                   marginTop: '2rem',
                   borderBottom: '2.5px solid orange',
                   borderRight: '1px solid orange'
@@ -342,38 +353,24 @@ const User = () => {
                 />
               </Paper>
               <button style={{
-                backgroundColor: 'white',
-                color: 'grey',
-                position: 'absolute',
-                top: '42%',
-                right: '9rem',
-                width: '6rem',
-                cursor: 'pointer',
-                border: '1px solid',
-                paddingBottom: '1px',
-                fontSize: '20px',
-                borderRadius: '5px'
-              }}
-                onClick={handleScreen}> Add <AddIcon sx={{
+              backgroundColor:'white',
+              color: 'grey',
+              position:'absolute',
+              top:'42%',
+              right:'16rem',
+              width:'6rem',
+              cursor:'pointer',
+              border:'1px solid',
+              paddingBottom:'1px',
+              fontSize:'20px',
+              borderRadius:'5px'
+            }}
+                onClick={() => handleScreen()}> Add <AddIcon sx={{
                   paddingTop: '5px',
                   fontSize: '20px'
                 }} />
               </button>
             </Box>
-            <Dialog
-              open={viewDialog}
-              TransitionComponent={Transition}
-              keepMounted
-              // onClose={handleClose}
-              aria-describedby="alert-dialog-slide-description"
-            >
-              <DialogTitle sx={{ width: "400px" }}>View City<Button
-                sx={{ border: '1px solid', position: 'absolute', right: '15px', color: 'black' }}
-                onClick={handleClose}> X </Button>
-              </DialogTitle>
-              <DialogContent>
-              </DialogContent>
-            </Dialog>
 
             <Dialog
               open={deleteDialog}
@@ -455,7 +452,18 @@ const User = () => {
               </DialogContent>
             </Dialog>
 
-            <Box sx={{ m: '0 auto', mt: '4rem', width: '78%' }}>
+            <Dialog
+              open={imageDialog}
+              TransitionComponent={Transition}
+              keepMounted
+              onClose={() => setImageDialog(false)}
+              aria-describedby="alert-dialog-slide-description"
+            >
+              <img src={profilepicture} width='100%' height='305px' />
+
+            </Dialog>
+
+            <Box sx={{ m: '0 auto', mt: '4rem', width: '70%' }}>
               <TableContainer component={Paper}>
                 <Table sx={{ minWidth: 650 }} aria-label="simple table">
                   <TableHead>
@@ -481,11 +489,11 @@ const User = () => {
                         <TableCell >{data.lastname}</TableCell>
                         <TableCell >{data.email}</TableCell>
                         <TableCell >{data.phonenumber}</TableCell>
-                        <TableCell ><img src={data.profilepicture} width='65px' height='65px' /></TableCell>
-                        <TableCell >{data.resume}</TableCell>
+                        <TableCell ><img src={data.profilepicture} width='65px' height='65px' onClick={() => openeImageInDialog(data.profilepicture)} /></TableCell>
+                        <TableCell onClick={() => handleDownload(data.userid, data.resume)}>{data.resume}</TableCell>
                         <TableCell><ModeEditOutlineIcon sx={{ color: '#3f533d' }} onClick={() => handleEdit(data.userid)} /></TableCell>
                         <TableCell><DeleteIcon sx={{ color: '#724560' }} onClick={() => { handleDelete(data) }}></DeleteIcon></TableCell>
-                        <TableCell><RemoveRedEyeIcon sx={{ color: '#5c7262' }} onClick={() => handleView(data.userid)} /></TableCell>
+                        <TableCell><RemoveRedEyeIcon sx={{ color: '#5c7262' }} onClick={() => { handleView(data.userid) }} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -499,8 +507,8 @@ const User = () => {
               onPageChange={handleChangePage}
               rowsPerPage={rowsPerPage}
               onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[3, 5, 10, 15]}
-              sx={{ mt: '2rem', mr: '11.5rem' }}
+              rowsPerPageOptions={[ 5, 10, 15]}
+              sx={{ mt: '2rem', mr: '16rem' }}
             />
           </Box>
         </Box>

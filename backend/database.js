@@ -6,6 +6,8 @@ const pool = new Pool({
     password: '2612',
     port: 5433,
 });
+const { error } = require('console');
+const path = require('path')
 
 //country_________
 
@@ -527,6 +529,31 @@ const UserPagination = (pageNumber, pageSize, filter, sortOrder) => {
     })
 }
 
+const DownloadResume = (userId, filename) => {
+    return new Promise (function(resolve, reject){
+        pool.query(
+            "SELECT resume FROM userdata where userid = $1 AND resume = $2",
+            [userId, filename],
+            (error,results) => {
+                if(error){
+                    reject(error)
+                }else{
+                    if(results.rows.length === 0){
+                        reject({messge : "User or Resume are Not found"});
+                    }else{
+                        const resumePath = path.join(
+                            __dirname,"upload",
+                            userId,"resume",
+                            results.rows[0].resume
+                        );
+                        resolve(resumePath)
+                    }
+                }
+
+            }
+        )
+    })
+}
 
 
 
@@ -565,6 +592,6 @@ module.exports = {
     CityPagination,
     UserPagination,
 
-    // DownloadResume,
+    DownloadResume
 
 }

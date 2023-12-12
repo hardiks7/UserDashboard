@@ -427,6 +427,7 @@ const UserForm = () => {
                 sx={{ width: "40.7rem" }}
                 type="file"
                 accept=".jpg,.png"
+                // notaccept=".text"
                 onChange={(e) => setProfilePicture(e.target.files[0])}
               />
             </Box>

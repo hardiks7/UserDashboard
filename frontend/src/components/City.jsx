@@ -123,7 +123,7 @@ const City = () => {
   const [selectedCountryId, setselectedCountryId] = useState("")
   const [selectedStateId, setselectedStateId] = useState("")
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(3);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalrecord, setTotalRecord] = useState('')
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("asc")
@@ -468,7 +468,7 @@ const City = () => {
                 display: 'flex',
                 alignItems: 'center',
                 width: 350,
-                marginLeft: '12rem', 
+                marginLeft: '16rem', 
                 marginTop: '2rem',
                 borderBottom: '2.5px solid orange',
                 borderRight: '1px solid orange' }}
@@ -487,7 +487,7 @@ const City = () => {
               color: 'grey',
               position:'absolute',
               top:'42%',
-              right:'12.5rem',
+              right:'16rem',
               width:'6rem',
               cursor:'pointer',
               border:'1px solid',
@@ -646,8 +646,8 @@ const City = () => {
               onPageChange={handleChangePage}
               rowsPerPage={rowsPerPage}
               onRowsPerPageChange={handleChangeRowsPerPage}
-              rowsPerPageOptions={[3, 5, 10, 15]}
-              sx={{ mt: '2rem', mr: '11.5rem' }}
+              rowsPerPageOptions={[ 5, 10, 15]}
+              sx={{ mt: '2rem', mr: '16rem' }}
             />
           </Box>
         </Box>

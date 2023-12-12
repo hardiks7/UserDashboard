@@ -108,227 +108,37 @@ const User = () => {
     navigate('/dashboard')
   }
 
+  const handleScreen = () => {
+    navigate("/userform");
+  };
+
   const [userdata, setUserdata] = useState([])
-  const [dialog, setDialog] = useState(false)
-  const [dialogtitle, setDialogtitle] = useState('Add City')
   const [viewDialog, setViewDialog] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState(false)
-  const [countryname, setCountryName] = useState("")
-  const [statename, setStateName] = useState("")
-  const [cityname, setCityName] = useState("")
-  const [isdisabled, setIsDisabled] = useState(true)
-  const [cityid, setCityId] = useState("")
-  const [state, setState] = useState([])
-  const [country, setCountry] = useState([])
-  const [selectedCountryId, setselectedCountryId] = useState("")
-  const [selectedStateId, setselectedStateId] = useState("")
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(3);
   const [totalrecord, setTotalRecord] = useState('')
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("asc")
+  const [userId, setUserId] = useState("")
+  const [firstname, setFirstName] = useState('');
+  const [lastname, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phonenumber, setPhoneNumber] = useState('');
+  const [profilepicture, setProfilePicture] = useState('');
+  const [resume, setResume] = useState('');
+  const [address, setAddress] = useState('');
+  const [countryname, setCountryName] = useState('');
+  const [statename, setStateName] = useState('');
+  const [cityname, setCityName] = useState('');
+
 
   const count = parseInt(totalrecord);
 
-  useEffect(() => {
-    if (selectedCountryId === '' || selectedStateId === '' || cityname === '') {
-      setIsDisabled(true)
-    }
-    else {
-      setIsDisabled(false)
-    }
-  }, [selectedCountryId, selectedStateId, cityname])
-
-
-  const handleAdd = (mode) => {
-    setDialogtitle(mode === 'add' ? 'Add City' : 'Edit City')
-    setDialog(true);
-    handleClear()
-  };
-
-  const handleClear = () => {
-    setselectedCountryId("");
-    setselectedStateId("");
-    setCityName("");
-  }
-
   const handleClose = () => {
-    setDialog(false);
     setViewDialog(false)
     setDeleteDialog(false)
   };
-
-  const handleEdit = (mode, city) => {
-    setDialogtitle(mode === 'edit' ? 'Edit City' : 'Add City')
-    setDialog(true);
-    setCityName(city.cityname);
-    const countryId = findcountryId(city.countryname)
-    setselectedCountryId(countryId);
-    const stateId = findstateId(city.statename)
-    setselectedStateId(stateId);
-    setCityId(city.cityid);
-  };
-
-  const findcountryId = (selectedCountryName) => {
-    const selectedcountry = country.find((c) => c.countryname === selectedCountryName)
-    if (selectedcountry) {
-      return selectedcountry.countryid
-    }
-    return "";
-  };
-
-
-  const findstateId = (selectedStateName) => {
-    const selectedstate = state.find((state) => state.statename === selectedStateName)
-    if (selectedstate) {
-      return selectedstate.stateid
-    }
-    return "";
-  }
-
-
-  const handleView = (city) => {
-    setViewDialog(true);
-    setCountryName(city.countryname);
-    setStateName(city.statename);
-    setCityName(city.cityname);
-  }
-
-  const handleDelete = (city) => {
-    setDeleteDialog(true);
-    setCityId(city.cityid);
-  }
-
-  const getCountry = async () => {
-    const response = await fetch('http://localhost:4500/country')
-    const data = await response.json();
-    setCountry(data)
-  }
-
-
-  const getState = async () => {
-    const response = await fetch('http://localhost:4500/state')
-    const data = await response.json();
-    setState(data)
-  }
-
-  
-
-
-  // insert in new City 
-
-  const getCountryName = (countryId) => {
-    const selectedcountry = country.find((c) => c.countryid === countryId);
-    return selectedcountry ? selectedcountry.countryname : "";
-  }
-
-  const getStateName = (stateId) => {
-    const selectedstate = state.find((state) => state.stateid === stateId);
-    return selectedstate ? selectedstate.statename : "";
-  }
-
-  const createCity = async () => {
-    try {
-      const CountryName = getCountryName(selectedCountryId)
-      const StateName = getStateName(selectedStateId)
-      const newCity = {
-        selectedCountryId,
-        countryname: CountryName,
-        selectedStateId,
-        statename: StateName,
-        cityname
-      };
-      const response = await fetch("http://localhost:4500/city", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newCity),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        newCity.cityid = data.cityid;
-        setCity([...city, newCity]);
-        toast.success("city Added SuccessFully");
-      }
-      else {
-        toast.error("city Already Exists!");
-      }
-    } catch (error) {
-      console.error("NetWork Error:", error)
-    }
-  }
-
-
-  // Delete city
-
-  const handleDeleteConfirm = (cityid) => {
-    fetch(`http://localhost:4500/city/${cityid}`, {
-      method: "DELETE",
-    })
-      .then((response) => {
-        if (response.ok) {
-          setDeleteDialog(false);
-          getCity(page, rowsPerPage);
-          toast.success("Delete SuccessFully");
-        }
-        else {
-          console.error('Failed to mark City as Deleted')
-        }
-      })
-      .catch((error) => {
-        console.error("NetWork Error:", error)
-        toast.error("Failed to mark City as Deleted");
-      })
-
-  }
-
-  const handelsubmit = async (e) => {
-    e.preventDefault();
-    if (selectedCountryId.length > 50) {
-      toast.error('countryName should be less then 50')
-    }
-    else if (selectedStateId.length > 50) {
-      toast.error('statename should be less then 50')
-    }
-    else if (cityname.length > 50) {
-      toast.error('cityname should be less then 50')
-    }
-    else {
-      try {
-        await createCity()
-        setDialog(false)
-      } catch (error) {
-        console.error("NetWork Error:", error);
-        toast.error("Faile To Add State")
-      }
-
-    }
-  }
-
-  // Update City
-
-  const handleupdate = (e, cityid) => {
-    e.preventDefault();
-    fetch(`http://localhost:4500/city/${cityid}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ selectedCountryId, selectedStateId, cityname }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          setDialog(false)
-          toast.success('City update successfuly')
-          getCity(page, rowsPerPage);
-        }
-      })
-      .catch(() => {
-        toast.error('Faile To City update ... ')
-      })
-  }
 
   // pagination
 
@@ -339,17 +149,12 @@ const User = () => {
     setTotalRecord(data.total)
   }, [search, sortOrder])
 
-  // useEffect(() => {
-  // getCity(0,rowsPerPage);
-  // }, [getCity])
 
   useEffect(() => {
     if (!sessionStorage.getItem("token")) {
       navigate('/')
     } else {
       getUser(0, rowsPerPage);
-      getCountry()
-      getState()
     }
   }, [getUser])
 
@@ -374,6 +179,63 @@ const User = () => {
       setPage(0);
     }
   };
+
+
+  const handleDelete = (user) => {
+    setDeleteDialog(true);
+    setUserId(user.userid);
+  };
+
+  // Delete city
+
+  const handleDeleteConfirm = (userId) => {
+    fetch(`http://localhost:4500/user/${userId}`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (response.ok) {
+          setDeleteDialog(false);
+          getUser(page, rowsPerPage);
+          toast.success("User Deleted");
+        } else {
+          console.error("Failed to deleted");
+        }
+      })
+      .catch((error) => {
+        console.error("Network error:", error);
+        toast.error("Failed to deleted");
+      });
+  };
+
+  const handleView = async (userid) => {
+    const response = await fetch(`http://localhost:4500/ViewUserById/${userid}`, {
+      method: 'GET',
+    })
+    const data = await response.json();
+    setViewDialog(true);
+    setFirstName(data.firstname);
+    setLastName(data.lastname);
+    setEmail(data.email)
+    setPhoneNumber(data.phonenumber)
+    setProfilePicture(data.profilepicture)
+    setResume(data.resume)
+    setAddress(data.address)
+    setCountryName(data.countryname)
+    setStateName(data.statename)
+    setCityName(data.cityname)
+  };
+
+  // Update City
+
+  const handleEdit = (userId) => {
+    fetch(`http://localhost:4500/userById/${userId}`, {
+      method: "GET",
+    })
+      .then(async (response) => {
+        const data = await response.json()
+        navigate(`/user/form`, { state: { data } });
+      })
+  }
 
   const handleSort = () => {
     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
@@ -455,18 +317,20 @@ const User = () => {
             }}
           >
             <Toolbar />
-            <Box component="main" sx={{position: 'relative',top:'38px'}}>
+            <Box component="main" sx={{ position: 'relative', top: '38px' }}>
               {/* searchbar.. */}
               <Paper
                 component="form"
-                sx={{ p: '2px 15px',
-                display: 'flex',
-                alignItems: 'center',
-                width: 350,
-                marginLeft: '9rem', 
-                marginTop: '2rem',
-                borderBottom: '2.5px solid orange',
-                borderRight: '1px solid orange' }}
+                sx={{
+                  p: '2px 15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: 350,
+                  marginLeft: '9rem',
+                  marginTop: '2rem',
+                  borderBottom: '2.5px solid orange',
+                  borderRight: '1px solid orange'
+                }}
               >
                 <InputBase
                   sx={{ ml: 0, flex: 1, height: '3rem' }}
@@ -478,85 +342,24 @@ const User = () => {
                 />
               </Paper>
               <button style={{
-              backgroundColor:'white',
-              color: 'grey',
-              position:'absolute',
-              top:'42%',
-              right:'9rem',
-              width:'6rem',
-              cursor:'pointer',
-              border:'1px solid',
-              paddingBottom:'1px',
-              fontSize:'20px',
-              borderRadius:'5px'
-            }}
-                onClick={() => handleAdd('add')}> Add <AddIcon sx={{
+                backgroundColor: 'white',
+                color: 'grey',
+                position: 'absolute',
+                top: '42%',
+                right: '9rem',
+                width: '6rem',
+                cursor: 'pointer',
+                border: '1px solid',
+                paddingBottom: '1px',
+                fontSize: '20px',
+                borderRadius: '5px'
+              }}
+                onClick={handleScreen}> Add <AddIcon sx={{
                   paddingTop: '5px',
                   fontSize: '20px'
                 }} />
               </button>
             </Box>
-
-            <Dialog
-              open={dialog}
-              TransitionComponent={Transition}
-              keepMounted
-              // onClose={handleClose}
-              aria-describedby="alert-dialog-slide-description"
-            >
-              <DialogTitle
-                sx={{ textAlign: 'center' }}>{dialogtitle}
-                <Button sx={{ border: '1px solid', position: 'absolute', right: '15px', color: 'black' }}
-                  onClick={handleClose}> X </Button>
-              </DialogTitle>
-              <DialogContent>
-                
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '30rem' }}>
-                    <div>
-                      <InputLabel id="demo-simple-select-standard-label">Select Country</InputLabel>
-                      <Select
-                        labelId="demo-simple-select-standard-label"
-                        id="demo-simple-select-standard"
-                        label="Select Country"
-                        variant='standard'
-                        sx={{ width: "30rem" }}
-                        value={selectedCountryId}
-                        onChange={(e) => setselectedCountryId(e.target.value)}
-                      >
-                        {country.map((countries, index) => (
-                          <MenuItem key={index} value={countries.countryid}>{countries.countryname}</MenuItem>
-                        ))}
-                      </Select>
-                    </div>
-                    <div>
-                      <InputLabel id="demo-simple-select-standard-label">Select State</InputLabel>
-                      <Select
-                        labelId="demo-simple-select-standard-label"
-                        id="demo-simple-select-standard"
-                        label="Select State"
-                        variant='standard'
-                        sx={{ width: "30rem" }}
-                        value={selectedStateId}
-                        onChange={(e) => setselectedStateId(e.target.value)}
-                      >
-                        {state.map((state, index) => (
-                          <MenuItem key={index} value={state.stateid}>{state.statename}</MenuItem>
-                        ))}
-                      </Select>
-                    </div>
-                    <div>
-                      <TextField label="CityName" variant='standard'
-                        value={cityname} onChange={(e) => setCityName(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))} fullWidth />
-                    </div>
-                  </div>
-              </DialogContent>
-              <DialogActions>
-                {dialogtitle === 'Add City' ? (<Button disabled={isdisabled} onClick={(e) => handelsubmit(e)}>SUBMIT</Button>)
-                  : (<Button disabled={isdisabled} onClick={(e) => handleupdate(e, cityid)}>Update</Button>)}
-                <Button onClick={handleClear}>CANCEL</Button>
-              </DialogActions>
-            </Dialog>
-
             <Dialog
               open={viewDialog}
               TransitionComponent={Transition}
@@ -569,14 +372,6 @@ const User = () => {
                 onClick={handleClose}> X </Button>
               </DialogTitle>
               <DialogContent>
-                <div>
-                  <h3>Country Name</h3>
-                  <p>{countryname}</p>
-                  <h3>State Name</h3>
-                  <p>{statename}</p>
-                  <h3>City Name</h3>
-                  <p>{cityname}</p>
-                </div>
               </DialogContent>
             </Dialog>
 
@@ -592,9 +387,72 @@ const User = () => {
                 <h4> Are You Sure You Want To Delete This City</h4>
               </DialogContent>
               <DialogActions>
-                <Button onClick={() => handleDeleteConfirm(cityid)}>DELETE</Button>
+                <Button onClick={() => handleDeleteConfirm(userId)}>DELETE</Button>
                 <Button onClick={handleClose}>CANCEL</Button>
               </DialogActions>
+            </Dialog>
+            <Dialog
+              open={viewDialog}
+              TransitionComponent={Transition}
+              keepMounted
+              aria-describedby="alert-dialog-slide-description"
+            >
+              <DialogTitle
+                sx={{ margin: "auto", fontSize: "25px", fontFamily: "cursive" }}
+              >
+                View State
+                <Button
+                  variant="outlined"
+                  color="error"
+                  sx={{ marginLeft: "6rem" }}
+                  onClick={() => setViewDialog(false)}
+                >
+                  x
+                </Button>
+              </DialogTitle>
+              <DialogContent>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1px",
+                    width: "30rem",
+                    fontFamily: "cursive",
+                    fontSize: '20px'
+                  }}
+                >
+                  <div style={{ paddingTop: "5px" }}>
+                    <p>FirstName: <span>{firstname}</span></p>
+                  </div>
+                  <div>
+                    <p>LastName: <span>{lastname}</span></p>
+                  </div>
+                  <div>
+                    <p>E-Mail: <span>{email}</span></p>
+                  </div>
+                  <div>
+                    <p>PhoneNumber: <span>{phonenumber}</span></p>
+                  </div>
+                  <div style={{ marginTop: '1rem' }}>
+                    <span>ProfilePicture: </span> <br /><img src={profilepicture} width='70px' />
+                  </div>
+                  <div>
+                    <p>Resume: <span>{resume}</span></p>
+                  </div>
+                  <div>
+                    <p>Address: <span>{address}</span></p>
+                  </div>
+                  <div>
+                    <p>CountryName: <span>{countryname}</span></p>
+                  </div>
+                  <div>
+                    <p>StateName: <span>{statename}</span></p>
+                  </div>
+                  <div>
+                    <p>CityName: <span>{cityname}</span></p>
+                  </div>
+                </div>
+              </DialogContent>
             </Dialog>
 
             <Box sx={{ m: '0 auto', mt: '4rem', width: '78%' }}>
@@ -603,7 +461,7 @@ const User = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell onClick={() => handleSort()}>FirstName
-                        {sortOrder === 'asc' ? (<KeyboardArrowUpIcon sx={{pt:"0.5rem"}} />) : (<KeyboardArrowDownIcon sx={{pt:"0.5rem"}} />)}
+                        {sortOrder === 'asc' ? (<KeyboardArrowUpIcon sx={{ pt: "0.5rem" }} />) : (<KeyboardArrowDownIcon sx={{ pt: "0.5rem" }} />)}
                       </TableCell>
                       <TableCell>LastName</TableCell>
                       <TableCell>Email</TableCell>
@@ -617,17 +475,17 @@ const User = () => {
                     {userdata.map((data) => (
                       <TableRow
                         key={data.userid}
-                        
+
                       >
-                        <TableCell component= "th" scope="row" >{data.firstname}</TableCell>
+                        <TableCell component="th" scope="row" >{data.firstname}</TableCell>
                         <TableCell >{data.lastname}</TableCell>
                         <TableCell >{data.email}</TableCell>
                         <TableCell >{data.phonenumber}</TableCell>
-                        <TableCell ><img src={data.profilepicture} width= '65px' height= '65px' /></TableCell>
+                        <TableCell ><img src={data.profilepicture} width='65px' height='65px' /></TableCell>
                         <TableCell >{data.resume}</TableCell>
-                        <TableCell><ModeEditOutlineIcon sx={{ color: '#3f533d' }} onClick={() => handleEdit('edit', city)} /></TableCell>
-                        <TableCell><DeleteIcon sx={{ color: '#724560' }} onClick={() => { handleDelete(city) }}></DeleteIcon></TableCell>
-                        <TableCell><RemoveRedEyeIcon sx={{ color: '#5c7262' }} onClick={() => { handleView(city) }} /></TableCell>
+                        <TableCell><ModeEditOutlineIcon sx={{ color: '#3f533d' }} onClick={() => handleEdit(data.userid)} /></TableCell>
+                        <TableCell><DeleteIcon sx={{ color: '#724560' }} onClick={() => { handleDelete(data) }}></DeleteIcon></TableCell>
+                        <TableCell><RemoveRedEyeIcon sx={{ color: '#5c7262' }} onClick={() => handleView(data.userid)} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -131,7 +131,7 @@ const updatestate = (body, stateid) => {
 
 const getcity = () => {
     return new Promise(function (resolve, reject) {
-        pool.query('select city.cityid, country.countryname, state.statename, city.cityname,  state.isdeleted, country.isdeleted,city.isdeleted FROM city left join state on city.stateid = state.stateid left join country on city.countryid = country.countryid WHERE city.isdeleted = false AND state.isdeleted = false AND country.isdeleted = false', (err, results) => {
+        pool.query('select city.cityid, state.stateid, country.countryname, state.statename, city.cityname, state.isdeleted, country.isdeleted, city.isdeleted FROM city left join state ON state.stateid = city.stateid LEFT JOIN country ON country.countryid = city.countryid WHERE city.isdeleted = false AND state.isdeleted = false AND country.isdeleted = false', (err, results) => {
             if (err) {
                 reject(err)
             }
@@ -282,7 +282,7 @@ const CityPagination = (pageNumber, pageSize, filter, sortOrder) => {
         ORDER BY cityname ${sortOrder === 'asc' ? 'ASC' : 'DESC'}
         LIMIT $2 OFFSET $1`;
 
-        const countQuery =
+    const countQuery =
         `SELECT COUNT(*) AS total
         FROM city
         LEFT JOIN country ON country.countryid = city.countryid
@@ -312,10 +312,10 @@ const CityPagination = (pageNumber, pageSize, filter, sortOrder) => {
 
 const CreateToken = (body) => {
     return new Promise(function (resolve, reject) {
-        const {username, password} = body;
+        const { username, password } = body;
         pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password], (error, results) => {
             if (error) {
-                reject(error)  
+                reject(error)
             }
             else {
                 if (results.rows.length === 1) {
@@ -331,9 +331,23 @@ const CreateToken = (body) => {
 
 // userdata - screen
 
+const getUser = () => {
+    return new Promise(function (resolve, reject) {
+      pool.query(
+        "SELECT * FROM userdata WHERE isdeleted = false",
+        (error, results) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(results.rows);
+        }
+      );
+    });
+  };
+
 const CreateUser = (userid, body, profilepicture, resume) => {
-    return new Promise(function(resolve,reject){
-        const{
+    return new Promise(function (resolve, reject) {
+        const {
             firstname,
             lastname,
             email,
@@ -347,36 +361,36 @@ const CreateUser = (userid, body, profilepicture, resume) => {
             "SELECT * FROM userdata WHERE email = $1 OR phonenumber = $2",
             [email, phonenumber],
             (checkError, checkResult) => {
-                if(checkError){
+                if (checkError) {
                     reject(checkError);
-                }else if (checkResult.rows.length > 0){
+                } else if (checkResult.rows.length > 0) {
                     const existingUser = checkResult.rows[0];
-                    if (existingUser.email === email){
+                    if (existingUser.email === email) {
                         reject("Email already exists");
                     }
-                    else{
+                    else {
                         reject("Phone number already exists")
                     }
-                } else{
+                } else {
                     pool.query(
                         "INSERT INTO userdata (userid, firstname, lastname, email, phonenumber, profilepicture, resume, countryid, stateid, cityid, address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *",
                         [
                             userid,
                             firstname,
-                            lastname, 
-                            email, 
-                            phonenumber, 
-                            profilepicture, 
-                            resume, 
+                            lastname,
+                            email,
+                            phonenumber,
+                            profilepicture,
+                            resume,
                             selectedCountryId,
                             selectedStateId,
                             selectedCityId,
                             address
                         ],
-                        (insertError,insertResult) =>{
+                        (insertError, insertResult) => {
                             if (insertError) {
                                 reject(insertError)
-                            }else{
+                            } else {
                                 resolve(insertResult.rows[0]);
                             }
                         }
@@ -385,12 +399,104 @@ const CreateUser = (userid, body, profilepicture, resume) => {
             }
         );
     });
-}
+};
+
+const getUserById = (userId) => {
+    return new Promise(function (resolve, reject) {
+      pool.query(
+        "SELECT * FROM userdata where userid = $1",
+        [userId],
+        (error, results) => {
+          if (error) {
+            reject(error);
+          } else {
+            if (results.rows.length === 0) {
+              reject({ message: "User not found" });
+            } else {
+              resolve(results.rows[0]);
+            }
+          }
+        }
+      );
+    });
+  };
+
+  const ViewUserById = (userid) => {
+    const query = `SELECT u.firstname,u.lastname,u.email,u.phonenumber,u.address,u.profilepicture,
+                   u.resume,country.countryname,state.statename,city.cityname FROM userdata as u 
+                   JOIN country ON u.countryid = country.countryid 
+                   JOIN state ON u.stateid = state.stateid
+                   JOIN city ON u.cityid = city.cityid WHERE userid = $1`;
+  
+    return new Promise(function (resolve, reject) {
+      pool.query(query, [userid], (error, results) => {
+        if (error) {
+          reject(error);
+        }
+        resolve(results.rows[0]);
+      });
+    });
+  };
+
+const deleteUser = (userid) => {
+    return new Promise(function (resolve, reject) {
+        pool.query(
+            "UPDATE userdata SET isdeleted = true WHERE userid = $1",
+            [userid],
+            (error, results) => {
+                if (error) {
+                    reject(error);
+                }
+                resolve(`User deleted successfully ${userid}`);
+            }
+        );
+    });
+};
+
+const updateUser = (userId, body, profilepicture, resume) => {
+    const query = `UPDATE userdata SET firstname = $2, lastname = $3, email = $4, phonenumber = $5,
+       profilepicture = $6,resume = $7, countryid = $8, stateid = $9 , cityid = $10, address = $11 WHERE userid = $1`;
+    return new Promise(function (resolve, reject) {
+      const {
+        firstname,
+        lastname,
+        email,
+        phonenumber,
+        selectedCountryId,
+        selectedStateId,
+        selectedCityId,
+        address,
+      } = body;
+      pool.query(
+        query,
+        [
+          userId,
+          firstname,
+          lastname,
+          email,
+          phonenumber,
+          profilepicture,
+          resume,
+          selectedCountryId,
+          selectedStateId,
+          selectedCityId,
+          address,
+        ],
+        (error, results) => {
+          if (error) {
+            reject(error);
+          }
+          resolve("User Updated Successfully");
+        }
+      );
+    });
+  };
+
 
 const UserPagination = (pageNumber, pageSize, filter, sortOrder) => {
     const offset = (pageNumber - 1) * pageSize;
     const query =
-    `SELECT * FROM userdata
+        `SELECT * FROM userdata
     WHERE isdeleted = false
     AND (firstname ILIKE $3 OR lastname ILIKE $3 OR email ILIKE $3 OR phonenumber ILIKE $3)
     ORDER BY firstname ${sortOrder === 'asc' ? 'ASC' : 'DESC'}
@@ -399,9 +505,9 @@ const UserPagination = (pageNumber, pageSize, filter, sortOrder) => {
 
     const countryQuery =
         `SELECT COUNT(*) AS total
-    FROM userdata
-    WHERE isdeleted = false AND (firstname ILIKE $1 OR lastname ILIKE $1 OR email ILIKE $1 OR phonenumber ILIKE $1)
-    `;
+        FROM userdata
+        WHERE isdeleted = false AND (firstname ILIKE $1 OR lastname ILIKE $1 OR email ILIKE $1 OR phonenumber ILIKE $1)
+        `;
     return new Promise(function (resolve, reject) {
         pool.query(query, [offset, pageSize, `%${filter}%`], (error, results) => {
             if (error) {
@@ -426,12 +532,13 @@ const UserPagination = (pageNumber, pageSize, filter, sortOrder) => {
 
 module.exports = {
     CreateToken,
-    CreateUser,
-    UserPagination,
-
-
-
-
+    
+    updateUser,
+    ViewUserById,
+    deleteUser,
+    getUserById,
+    getUser,
+    
     getcountry,
     getstate,
     getcity,
@@ -439,6 +546,7 @@ module.exports = {
     createcountry,
     createstate,
     createcity,
+    CreateUser,
 
     updatecountry,
     getcountryById,
@@ -455,4 +563,8 @@ module.exports = {
     CountryPagination,
     StatePagination,
     CityPagination,
+    UserPagination,
+
+    // DownloadResume,
+
 }

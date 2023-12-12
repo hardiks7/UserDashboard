@@ -544,7 +544,9 @@ const City = () => {
                         value={selectedStateId}
                         onChange={(e) => setselectedStateId(e.target.value)}
                       >
-                        {state.map((state, index) => (
+                        {state
+                        .filter((state) => state.countryid === selectedCountryId)
+                        .map((state, index) => (
                           <MenuItem key={index} value={state.stateid}>{state.statename}</MenuItem>
                         ))}
                       </Select>

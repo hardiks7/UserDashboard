@@ -9,7 +9,7 @@ var cors = require('cors')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
-const { v4 : uuidv4 } = require('uuid')
+const { v4: uuidv4 } = require('uuid')
 const { count, error } = require('console')
 
 app.use(bodyParser.json())
@@ -33,21 +33,21 @@ app.post('/user', (req, resp, next) => {
 });
 
 const storage = multer.diskStorage({
-    destination : (req, file, cb) =>{
-        if(!req.userId) {
-            return cb(new Error ('User Id not provided'),null)
+    destination: (req, file, cb) => {
+        if (!req.userId) {
+            return cb(new Error('User Id not provided'), null)
         }
         const userFolder = `./upload/${req.userId}`;
         const profilePicFolder = path.join(userFolder, 'profilepic');
         const resumeFolder = path.join(userFolder, 'resume');
 
-        fs.mkdirSync(userFolder, {recursive: true});
-        fs.mkdirSync(profilePicFolder, {recursive: true});
-        fs.mkdirSync(resumeFolder, { recursive: true});
+        fs.mkdirSync(userFolder, { recursive: true });
+        fs.mkdirSync(profilePicFolder, { recursive: true });
+        fs.mkdirSync(resumeFolder, { recursive: true });
 
-        if (file.fieldname === 'profilepicture'){
+        if (file.fieldname === 'profilepicture') {
             cb(null, profilePicFolder)
-        } else if (file.fieldname === 'resume'){
+        } else if (file.fieldname === 'resume') {
             cb(null, resumeFolder);
         } else {
             cb(new Error('Invalid File field'), null);
@@ -58,22 +58,120 @@ const storage = multer.diskStorage({
     },
 });
 
-const upload = multer({ storage: storage});
+const upload = multer({ storage: storage });
 app.use('/upload', express.static('upload'));
 
+
 app.post('/user', upload.fields([
-    {name: 'profilepicture', maxCount: 1 },
-    {name: 'resume', maxCount: 1 },
+    { name: 'profilepicture', maxCount: 1 },
+    { name: 'resume', maxCount: 1 },
 ]), (req, resp) => {
     const profilepicture = `http://localhost:4500/upload/${req.userId}/profilepic/${req.files['profilepicture'][0].filename}`;
     const resume = `${req.files['resume'][0].filename}`;
-    database.CreateUser(req.userId,req.body,profilepicture,resume)
-    .then((response) => {
+    database.CreateUser(req.userId, req.body, profilepicture, resume)
+        .then((response) => {
+            resp.status(200).send(response);
+        })
+        .catch((error) => {
+            resp.status(500).send(error);
+        })
+});
+
+app.put('/user/:userId', upload.fields([
+    { name: 'profilepicture', maxCount: 1 },
+    { name: 'resume', maxCount: 1 },
+]), async (req, resp) => {
+    const { userId } = req.params;
+
+    if (!userId) {
+        return resp.status(400).send('User Id not provided');
+    }
+
+    let profilepicture = '';
+    let resume = '';
+
+    if (req.files['profilepicture']) {
+        profilepicture = `http://localhost:4500/upload/${userId}/profilepic/${req.files['profilepicture'][0].filename}`;
+    }
+
+    if (req.files['resume']) {
+        resume = `${req.files['resume'][0].filename}`;
+    }
+
+    try {
+
+        const existingUserData = await database_file.getUser(userId);
+
+        if (!req.files['profilepicture']) {
+            profilepicture = existingUserData.profilepicture;
+        }
+
+        if (!req.files['resume']) {
+            resume = existingUserData.resume;
+        }
+
+        const response = await database.updateUser(userId, req.body, profilepicture, resume);
         resp.status(200).send(response);
-    })
-    .catch((error) => {
+    } catch (error) {
         resp.status(500).send(error);
-    })
+    }
+});
+
+app.delete('/user/:userid', (req, res,) => {
+    const userId = req.params.userid;
+    database.deleteUser(userId)
+        .then(response => {
+            res.json(response);
+        })
+        .catch(error => {
+            res.status(500).send(error);
+        })
+});
+
+app.get('/user', (req, res) => {
+    database.getUser()
+        .then(response => {
+            res.status(200).send(response);
+        })
+        .catch(error => {
+            res.status(500).send(error);
+        })
+})
+
+app.get('/userById/:userid', (req, res) => {
+    const userId = req.params.userid;
+    database.getUserById(userId)
+        .then((response) => {
+            res.json(response);
+        })
+        .catch((error) => {
+            res.status(404).json({ error: error.message });
+        });
+});
+
+app.get('/ViewUserById/:userid', (req, res) => {
+    const userId = req.params.userid;
+
+    database.ViewUserById(userId)
+        .then((response) => {
+            res.json(response);
+        })
+        .catch((error) => {
+            res.status(404).json({ error: error.message });
+        });
+});
+
+app.get('/user/:userid/:firstname', (req, resp) => {
+    const userId = req.params.userid;
+    const filename = req.params.firstname;
+
+    database_file.DownloadResume(userId, filename)
+        .then((resumePath) => {
+            resp.download(resumePath);
+        })
+        .catch((error) => {
+            resp.status(404).json({ error: error.message });
+        });
 });
 
 app.get('/UserPagination', (req, res) => {
@@ -89,24 +187,6 @@ app.get('/UserPagination', (req, res) => {
             res.status(200).send(error)
         })
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ----------------------------------------------------
 
@@ -184,7 +264,6 @@ app.get('/country/:countryid', (req, resp) => {
         })
 })
 
-
 app.put('/country/:countryid', (req, resp) => {
     const body = req.body
     const countryid = req.params.countryid
@@ -196,7 +275,6 @@ app.put('/country/:countryid', (req, resp) => {
             resp.status(500).send(err);
         })
 })
-
 
 app.delete('/country/:countryid', (req, resp) => {
     const countryid = req.params.countryid
@@ -258,7 +336,6 @@ app.get('/city/:cityid', (req, resp) => {
         })
 })
 
-
 app.put('/city/:cityid', (req, resp) => {
     const body = req.body
     const cityid = req.params.cityid
@@ -271,7 +348,6 @@ app.put('/city/:cityid', (req, resp) => {
         })
 })
 
-
 app.delete('/city/:cityid', (req, resp) => {
     const cityid = req.params.cityid
     database.deletecity(cityid)
@@ -282,7 +358,6 @@ app.delete('/city/:cityid', (req, resp) => {
             resp.status(500).send(err);
         })
 })
-
 
 // Pagination ..
 
@@ -301,7 +376,6 @@ app.get('/countryPagination', (req, res) => {
         })
 })
 
-
 app.get('/statePagination', (req, res) => {
     const sortOrder = req.query.sortOrder || 'asc';
     const filter = req.query.filter || '';
@@ -315,7 +389,6 @@ app.get('/statePagination', (req, res) => {
             res.status(200).send(error)
         })
 })
-
 
 app.get('/cityPagination', (req, res) => {
     const sortOrder = req.query.sortOrder || 'asc';
@@ -334,7 +407,7 @@ app.get('/cityPagination', (req, res) => {
 
 // user-sreen ..
 
-app.post('/admin', (req, res) => { 
+app.post('/admin', (req, res) => {
     const { username, password } = req.body;
 
     database.CreateToken({ username, password })
@@ -377,12 +450,6 @@ function verifyToken(req, res, next) {
         res.send({ result: "Tokan is not valid" })
     }
 }
-
-
-
-
-
-
 
 
 app.listen(port, () => {
